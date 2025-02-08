@@ -1,0 +1,18 @@
+# Environment
+.env
+.venv/
+node_modules/
+
+# Temporary files
+uploads/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# Python cache
+*.pyc
+
+# macOS store
+.DS_Store 

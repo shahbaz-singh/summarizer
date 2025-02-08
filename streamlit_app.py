@@ -61,36 +61,42 @@ def summarize_document(document, usecase='general'):
         # Convert document to base64
         base64_data = base64.b64encode(document).decode('utf-8')
         
-        # Create message with image
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": get_prompt_for_usecase("", usecase)
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_data}"
-                        }
-                    }
-                ]
-            }
-        ]
-
-        response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
-            messages=messages,
-            max_tokens=4000
+        # Create the agent
+        agent = Agent(
+            name="Document Vision Agent",
+            model=OpenAIChat(
+                id="gpt-4o",
+                max_tokens=4000,
+                temperature=0.7,
+                vision=True,
+                api_key=os.getenv('OPENAI_API_KEY')
+            ),
+            instructions=[
+                "Analyze the provided document image.",
+                "Create a structured summary using the sections provided.",
+                "Use bullet points for clarity and keep each point concise.",
+                "Maintain appropriate terminology for the specific use case."
+            ],
+            show_tool_calls=False,
+            markdown=True,
         )
-        
-        return response.choices[0].message.content
+
+        # Create the message with image
+        message = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": get_prompt_for_usecase("", usecase)},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_data}"
+                    }
+                }
+            ]
+        }
+
+        response = agent.run(message)
+        return response.content if hasattr(response, 'content') else str(response)
         
     except Exception as e:
         st.error(f"Error in summarize_document: {str(e)}")
@@ -98,24 +104,26 @@ def summarize_document(document, usecase='general'):
 
 def summarize_text(text, usecase='general'):
     try:
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-            },
-            {
-                "role": "user",
-                "content": get_prompt_for_usecase(text, usecase) + "\n\nText to summarize:\n" + text
-            }
-        ]
-
-        response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=messages,
-            max_tokens=4000
+        agent = Agent(
+            name="Text Summary Agent",
+            model=OpenAIChat(
+                id="gpt-4o",
+                max_tokens=4000,
+                temperature=0.7,
+                api_key=os.getenv('OPENAI_API_KEY')
+            ),
+            instructions=[
+                "Create a structured summary using the sections provided.",
+                "Use bullet points for clarity and keep each point concise.",
+                "Maintain appropriate terminology for the specific use case."
+            ],
+            show_tool_calls=False,
+            markdown=True,
         )
         
-        return response.choices[0].message.content
+        prompt = get_prompt_for_usecase(text, usecase)
+        response = agent.run(prompt + "\n\nText to summarize:\n" + text)
+        return response.content if hasattr(response, 'content') else str(response)
     except Exception as e:
         st.error(f"Error in summarize_text: {str(e)}")
         raise

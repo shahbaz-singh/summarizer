@@ -1,5 +1,5 @@
 streamlit
 python-dotenv
-phi
+phi==0.8.1
 pillow
 python-multipart 

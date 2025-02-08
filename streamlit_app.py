@@ -89,49 +89,80 @@ def get_prompt_for_usecase(text, usecase='general'):
 
 def summarize_document(document, usecase='general'):
     try:
-        # Convert PDF/other formats to PNG if needed
-        # Convert bytes to image
-        image = Image.open(io.BytesIO(document))
+        # Get file extension from uploaded file
+        file_extension = document.type.split('/')[-1].lower()
         
-        # Convert to RGB if needed (handles RGBA, etc.)
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Read bytes from the uploaded file
+        bytes_data = document.read()
         
-        # Save as JPEG in memory
-        img_byte_arr = io.BytesIO()
-        image.save(img_byte_arr, format='JPEG', quality=95)
-        img_byte_arr = img_byte_arr.getvalue()
-        
-        # Convert to base64
-        base64_data = base64.b64encode(img_byte_arr).decode('utf-8')
-        
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": get_prompt_for_usecase("", usecase)
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_data}"
+        if file_extension == 'pdf':
+            # For PDFs, send text content directly
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
+                },
+                {
+                    "role": "user",
+                    "content": get_prompt_for_usecase("", usecase)
+                }
+            ]
+            
+            # Send PDF as a file attachment
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                max_tokens=4000,
+                files=[{
+                    "name": "document.pdf",
+                    "content": bytes_data,
+                    "type": "application/pdf"
+                }]
+            )
+            
+        else:  # Handle images
+            # Convert bytes to image
+            image = Image.open(io.BytesIO(bytes_data))
+            
+            # Convert to RGB if needed (handles RGBA, etc.)
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Save as JPEG in memory
+            img_byte_arr = io.BytesIO()
+            image.save(img_byte_arr, format='JPEG', quality=95)
+            img_byte_arr.seek(0)
+            
+            # Convert to base64
+            base64_data = base64.b64encode(img_byte_arr.read()).decode('utf-8')
+            
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": get_prompt_for_usecase("", usecase)
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_data}"
+                            }
                         }
-                    }
-                ]
-            }
-        ]
-
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            max_tokens=4000
-        )
+                    ]
+                }
+            ]
+            
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                max_tokens=4000
+            )
         
         return response.choices[0].message.content
         

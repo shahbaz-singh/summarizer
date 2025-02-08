@@ -55,6 +55,33 @@ def get_prompt_for_usecase(text, usecase='general'):
             ⚠️ LIABILITY & CONSEQUENCES:
             - Risk factors
             - Legal implications""",
+
+        'technical': f"""Please analyze this technical document and provide a detailed technical summary with:
+            
+            🔧 SYSTEM ARCHITECTURE:
+            - Core components
+            - System design
+            - Technical stack
+            
+            💻 TECHNICAL SPECIFICATIONS:
+            - Requirements
+            - Dependencies
+            - Configurations
+            
+            🛠️ IMPLEMENTATION DETAILS:
+            - Key algorithms
+            - Data structures
+            - APIs/Interfaces
+            
+            ⚙️ PERFORMANCE & SCALABILITY:
+            - Performance metrics
+            - Optimization points
+            - Scaling considerations
+            
+            🔒 SECURITY & COMPLIANCE:
+            - Security measures
+            - Compliance requirements
+            - Risk mitigations""",
     }
     return prompts.get(usecase, prompts['general'])
 

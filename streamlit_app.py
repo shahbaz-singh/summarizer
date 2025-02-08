@@ -85,7 +85,7 @@ def summarize_document(document, usecase='general'):
         ]
 
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=messages,
             max_tokens=4000
         )
@@ -110,7 +110,7 @@ def summarize_text(text, usecase='general'):
         ]
 
         response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model="gpt-4o",
             messages=messages,
             max_tokens=4000
         )

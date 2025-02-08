@@ -1,4 +1,5 @@
 streamlit
 python-dotenv
-git+https://github.com/phi-ai/phi.git@main#egg=phi-client
-pillow 
+git+https://github.com/phidata-public/phi.git
+pillow
+python-multipart 

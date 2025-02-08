@@ -89,8 +89,9 @@ def get_prompt_for_usecase(text, usecase='general'):
 
 def summarize_document(document, usecase='general'):
     try:
-        # Get file extension from uploaded file
-        file_extension = document.type.split('/')[1].lower()
+        # Get file extension and type from Streamlit's uploaded file
+        file_extension = document.name.split('.')[-1].lower()
+        mime_type = document.type if document.type else 'application/pdf' if file_extension == 'pdf' else 'image/jpeg'
         
         # Read bytes from the uploaded file
         bytes_data = document.getvalue()

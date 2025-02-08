@@ -99,69 +99,31 @@ def summarize_document(document, usecase='general'):
             file_extension = 'pdf'  # Default to PDF for bytes input
             bytes_data = document
         
-        # Convert to base64 (for both PDF and images)
+        # Convert to base64
         base64_data = base64.b64encode(bytes_data).decode('utf-8')
         
-        if file_extension == 'pdf':
-            # For PDFs, send as base64 with pdf content type
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": get_prompt_for_usecase("", usecase)
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:application/pdf;base64,{base64_data}"
-                            }
+        # Use same model and approach for both PDFs and images
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": get_prompt_for_usecase("", usecase)
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{file_extension}/base64;base64,{base64_data}"
                         }
-                    ]
-                }
-            ]
-        else:  # Handle images
-            # Convert bytes to image for proper format
-            image = Image.open(io.BytesIO(bytes_data))
-            
-            # Convert to RGB if needed
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
-            
-            # Save as JPEG
-            img_byte_arr = io.BytesIO()
-            image.save(img_byte_arr, format='JPEG', quality=95)
-            img_byte_arr.seek(0)
-            
-            # Convert to base64
-            base64_data = base64.b64encode(img_byte_arr.read()).decode('utf-8')
-            
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": get_prompt_for_usecase("", usecase)
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_data}"
-                            }
-                        }
-                    ]
-                }
-            ]
+                    }
+                ]
+            }
+        ]
         
         response = client.chat.completions.create(
             model="gpt-4o",

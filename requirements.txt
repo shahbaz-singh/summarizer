@@ -1,8 +1,5 @@
 streamlit
 python-dotenv
-phi==0.6.7
-pillow
-python-multipart
 openai>=1.0.0
-typing-extensions>=4.5.0
-pydantic>=1.10.0 
+pillow
+python-multipart 

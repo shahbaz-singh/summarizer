@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 from PIL import Image
 import io
-import PyPDF2
 
 # Load environment variables
 load_dotenv()

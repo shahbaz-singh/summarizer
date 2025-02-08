@@ -102,6 +102,13 @@ def summarize_document(document, usecase='general'):
         # Convert to base64
         base64_data = base64.b64encode(bytes_data).decode('utf-8')
         
+        # Set correct MIME type
+        mime_type = "image/jpeg"  # Default to JPEG
+        if file_extension == 'png':
+            mime_type = "image/png"
+        elif file_extension == 'pdf':
+            mime_type = "image/jpeg"  # Treat PDFs as images for GPT-4o
+        
         # Use same model and approach for both PDFs and images
         messages = [
             {
@@ -118,7 +125,7 @@ def summarize_document(document, usecase='general'):
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:{file_extension}/base64;base64,{base64_data}"
+                            "url": f"data:{mime_type};base64,{base64_data}"
                         }
                     }
                 ]

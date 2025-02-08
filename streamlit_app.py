@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from PIL import Image
 import io
+import PyPDF2
 
 # Load environment variables
 load_dotenv()
@@ -89,14 +90,17 @@ def get_prompt_for_usecase(text, usecase='general'):
 
 def summarize_document(document, usecase='general'):
     try:
-        # Get file extension from uploaded file name
-        file_extension = document.name.split('.')[-1].lower()
+        # Get file extension from uploaded file
+        file_extension = document.type.split('/')[1].lower()
         
         # Read bytes from the uploaded file
-        bytes_data = document.read()
+        bytes_data = document.getvalue()
+        
+        # Convert to base64 (for both PDF and images)
+        base64_data = base64.b64encode(bytes_data).decode('utf-8')
         
         if file_extension == 'pdf':
-            # For PDFs, send text content directly
+            # For PDFs, send as base64 with pdf content type
             messages = [
                 {
                     "role": "system",
@@ -104,31 +108,29 @@ def summarize_document(document, usecase='general'):
                 },
                 {
                     "role": "user",
-                    "content": get_prompt_for_usecase("", usecase)
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": get_prompt_for_usecase("", usecase)
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:application/pdf;base64,{base64_data}"
+                            }
+                        }
+                    ]
                 }
             ]
-            
-            # Send PDF as a file attachment
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-                max_tokens=4000,
-                files=[{
-                    "name": "document.pdf",
-                    "content": bytes_data,
-                    "type": "application/pdf"
-                }]
-            )
-            
         else:  # Handle images
-            # Convert bytes to image
+            # Convert bytes to image for proper format
             image = Image.open(io.BytesIO(bytes_data))
             
-            # Convert to RGB if needed (handles RGBA, etc.)
+            # Convert to RGB if needed
             if image.mode != 'RGB':
                 image = image.convert('RGB')
             
-            # Save as JPEG in memory
+            # Save as JPEG
             img_byte_arr = io.BytesIO()
             image.save(img_byte_arr, format='JPEG', quality=95)
             img_byte_arr.seek(0)
@@ -157,12 +159,12 @@ def summarize_document(document, usecase='general'):
                     ]
                 }
             ]
-            
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-                max_tokens=4000
-            )
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            max_tokens=4000
+        )
         
         return response.choices[0].message.content
         

@@ -1,14 +1,12 @@
 import streamlit as st
 import base64
-from openai import OpenAI
+from phi.agent import Agent
+from phi.model.openai import OpenAIChat
 import os
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Set page config
 st.set_page_config(

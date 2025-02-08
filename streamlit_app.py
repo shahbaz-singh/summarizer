@@ -101,50 +101,76 @@ def summarize_document(document, usecase='general'):
             bytes_data = document
         
         if file_extension == 'pdf':
-            # Convert PDF to image using pdf2image
-            # Load PDF
+            # Convert PDF to images
             pdf_document = fitz.open(stream=bytes_data, filetype="pdf")
-            first_page = pdf_document[0]
             
-            # Convert to image
-            pix = first_page.get_pixmap()
-            img_data = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            # Process all pages
+            all_page_images = []
+            for page_num in range(len(pdf_document)):
+                page = pdf_document[page_num]
+                pix = page.get_pixmap()
+                img_data = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                
+                # Convert to bytes
+                img_byte_arr = io.BytesIO()
+                img_data.save(img_byte_arr, format='JPEG', quality=95)
+                img_byte_arr.seek(0)
+                base64_data = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+                all_page_images.append(base64_data)
             
-            # Convert to bytes
-            img_byte_arr = io.BytesIO()
-            img_data.save(img_byte_arr, format='JPEG', quality=95)
-            img_byte_arr.seek(0)
-            base64_data = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
-            mime_type = "image/jpeg"
+            # Create messages for all pages
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details from all pages of the document."
+                }
+            ]
+            
+            # Add each page as a separate message
+            for page_num, base64_data in enumerate(all_page_images):
+                messages.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Page {page_num + 1} of {len(all_page_images)}:\n{get_prompt_for_usecase('', usecase)}"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_data}"
+                            }
+                        }
+                    ]
+                })
         else:
             # For regular images, just encode as base64
             base64_data = base64.b64encode(bytes_data).decode('utf-8')
             mime_type = "image/jpeg"  # Default to JPEG
             if file_extension == 'png':
                 mime_type = "image/png"
-        
-        # Use same model and approach for both PDFs and images
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": get_prompt_for_usecase("", usecase)
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime_type};base64,{base64_data}"
+            
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that creates structured summaries while maintaining key details."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": get_prompt_for_usecase("", usecase)
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_type};base64,{base64_data}"
+                            }
                         }
-                    }
-                ]
-            }
-        ]
+                    ]
+                }
+            ]
         
         response = client.chat.completions.create(
             model="gpt-4o",

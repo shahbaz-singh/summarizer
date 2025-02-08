@@ -89,12 +89,15 @@ def get_prompt_for_usecase(text, usecase='general'):
 
 def summarize_document(document, usecase='general'):
     try:
-        # Get file extension and type from Streamlit's uploaded file
-        file_extension = document.name.split('.')[-1].lower()
-        mime_type = document.type if document.type else 'application/pdf' if file_extension == 'pdf' else 'image/jpeg'
-        
-        # Read bytes from the uploaded file
-        bytes_data = document.getvalue()
+        # Handle both UploadedFile and bytes
+        if hasattr(document, 'name'):
+            # Streamlit UploadedFile
+            file_extension = document.name.split('.')[-1].lower()
+            bytes_data = document.getvalue()
+        else:
+            # Direct bytes input
+            file_extension = 'pdf'  # Default to PDF for bytes input
+            bytes_data = document
         
         # Convert to base64 (for both PDF and images)
         base64_data = base64.b64encode(bytes_data).decode('utf-8')

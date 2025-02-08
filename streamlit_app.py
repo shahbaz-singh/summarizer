@@ -3,6 +3,8 @@ import base64
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from PIL import Image
+import io
 
 # Load environment variables
 load_dotenv()
@@ -87,7 +89,21 @@ def get_prompt_for_usecase(text, usecase='general'):
 
 def summarize_document(document, usecase='general'):
     try:
-        base64_data = base64.b64encode(document).decode('utf-8')
+        # Convert PDF/other formats to PNG if needed
+        # Convert bytes to image
+        image = Image.open(io.BytesIO(document))
+        
+        # Convert to RGB if needed (handles RGBA, etc.)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Save as JPEG in memory
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format='JPEG', quality=95)
+        img_byte_arr = img_byte_arr.getvalue()
+        
+        # Convert to base64
+        base64_data = base64.b64encode(img_byte_arr).decode('utf-8')
         
         messages = [
             {

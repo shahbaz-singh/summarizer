@@ -85,6 +85,87 @@ def get_prompt_for_usecase(text, usecase='general'):
             - Security measures
             - Compliance requirements
             - Risk mitigations""",
+
+        'medical': f"""Please analyze this medical document and provide a detailed medical summary with:
+            
+            🏥 PATIENT INFORMATION:
+            - Demographics
+            - Medical history
+            - Current condition
+            
+            📋 CLINICAL FINDINGS:
+            - Symptoms
+            - Physical examination
+            - Test results
+            
+            🔬 DIAGNOSIS:
+            - Primary diagnosis
+            - Differential diagnoses
+            - Comorbidities
+            
+            💊 TREATMENT PLAN:
+            - Medications
+            - Procedures
+            - Therapies
+            
+            📈 PROGNOSIS & FOLLOW-UP:
+            - Expected outcomes
+            - Follow-up plan
+            - Monitoring requirements""",
+
+        'academic': f"""Please analyze this academic paper and provide a detailed academic summary with:
+            
+            📚 RESEARCH CONTEXT:
+            - Field of study
+            - Research gap
+            - Theoretical framework
+            
+            🎯 RESEARCH OBJECTIVES:
+            - Research questions
+            - Hypotheses
+            - Study aims
+            
+            🔬 METHODOLOGY:
+            - Research design
+            - Data collection
+            - Analysis methods
+            
+            📊 KEY FINDINGS:
+            - Primary results
+            - Statistical significance
+            - Data patterns
+            
+            💡 IMPLICATIONS:
+            - Theoretical contributions
+            - Practical applications
+            - Future research directions""",
+
+        'research': f"""Please analyze this research paper and provide a detailed research summary with:
+            
+            🔍 STUDY DESIGN:
+            - Research methodology
+            - Sample selection
+            - Variables studied
+            
+            📊 DATA ANALYSIS:
+            - Statistical methods
+            - Data processing
+            - Quality controls
+            
+            📈 RESULTS:
+            - Key findings
+            - Statistical significance
+            - Data trends
+            
+            🎯 CONCLUSIONS:
+            - Main implications
+            - Study limitations
+            - Future directions
+            
+            💡 RECOMMENDATIONS:
+            - Practical applications
+            - Policy implications
+            - Research gaps""",
     }
     return prompts.get(usecase, prompts['general'])
 
